@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Check, Star } from "lucide-react";
+import { Check, Star, Sparkles, Calendar, ArrowRight } from "lucide-react";
 import { useState } from "react";
 import { motion } from "framer-motion";
 
@@ -93,6 +93,106 @@ export const Pricing = () => {
       <div className="absolute top-0 left-1/4 w-64 h-64 sm:w-80 sm:h-80 md:w-96 md:h-96 bg-gold/10 rounded-full blur-[100px] md:blur-[150px]" />
       <div className="absolute bottom-0 right-1/4 w-64 h-64 sm:w-80 sm:h-80 md:w-96 md:h-96 bg-gold/10 rounded-full blur-[100px] md:blur-[150px]" />
       <div className="container mx-auto px-4 sm:px-6 md:px-8 lg:px-12 relative z-10">
+        {/* Free Trial Banner */}
+        <motion.div
+          className="mb-8 sm:mb-10 md:mb-12 max-w-5xl mx-auto"
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6, delay: 0.1 }}
+        >
+          <motion.div 
+            className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-gold via-yellow-400 to-amber-500 p-1"
+            whileHover={{ scale: 1.02 }}
+            transition={{ duration: 0.3 }}
+          >
+            {/* Animated shimmer */}
+            <motion.div
+              className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent"
+              animate={{
+                x: ["-200%", "200%"]
+              }}
+              transition={{
+                duration: 3,
+                repeat: Infinity,
+                ease: "easeInOut",
+                repeatDelay: 1
+              }}
+            />
+            
+            <div className="relative bg-background rounded-xl p-6 sm:p-8 md:p-10">
+              <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+                <div className="flex-1 text-center md:text-left">
+                  <motion.div 
+                    className="flex items-center justify-center md:justify-start gap-2 mb-3"
+                    initial={{ opacity: 0, x: -20 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: 0.3 }}
+                  >
+                    <motion.div
+                      animate={{
+                        scale: [1, 1.2, 1],
+                        rotate: [0, 5, -5, 0]
+                      }}
+                      transition={{
+                        duration: 2,
+                        repeat: Infinity,
+                        ease: "easeInOut"
+                      }}
+                    >
+                      <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 text-gold" />
+                    </motion.div>
+                    <span className="text-gold font-bold text-sm sm:text-base uppercase tracking-wide">Limited Time Offer</span>
+                  </motion.div>
+                  
+                  <h3 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground mb-2">
+                    Start with a <span className="text-gold">Free 15-Min Call</span>
+                  </h3>
+                  <p className="text-base sm:text-lg text-muted-foreground mb-4">
+                    Plus get <span className="font-semibold text-foreground">1 Week Free Trial</span> • No credit card required
+                  </p>
+                  
+                  <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 text-sm sm:text-base">
+                    <div className="flex items-center gap-2">
+                      <Check className="w-4 h-4 sm:w-5 sm:h-5 text-gold" />
+                      <span className="text-muted-foreground">No commitment</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Check className="w-4 h-4 sm:w-5 sm:h-5 text-gold" />
+                      <span className="text-muted-foreground">Cancel anytime</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Check className="w-4 h-4 sm:w-5 sm:h-5 text-gold" />
+                      <span className="text-muted-foreground">Full access</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0.4 }}
+                >
+                  <Button
+                    variant="gold"
+                    size="lg"
+                    onClick={() => window.location.href = '/book-meeting'}
+                    className="group relative text-base sm:text-lg px-8 sm:px-10 py-6 sm:py-7 h-auto font-bold shadow-2xl hover:shadow-gold/50 transition-all duration-300 hover:scale-105 whitespace-nowrap"
+                  >
+                    <span className="relative z-10 flex items-center gap-2">
+                      <Calendar className="w-5 h-5 group-hover:rotate-12 transition-transform" />
+                      Book Free Call
+                      <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                    </span>
+                  </Button>
+                </motion.div>
+              </div>
+            </div>
+          </motion.div>
+        </motion.div>
+
         <motion.div 
           className="mb-8 sm:mb-10 md:mb-12 lg:mb-16 text-left"
           initial={{ opacity: 0, y: 50 }}

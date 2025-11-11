@@ -2,7 +2,9 @@ import { Button } from "@/components/ui/button";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useRef } from "react";
 import { ArrowRight, Calendar, Sparkles, TrendingUp, Users, Star, Award } from "lucide-react";
-import heroImage from "@/assets/hero-image.jpg";
+
+// Using Unsplash image - aesthetic laptop workspace, no people
+const heroImage = "https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=1200&h=900&fit=crop&q=80";
 
 export const Hero = () => {
   const ref = useRef(null);
@@ -22,12 +24,57 @@ export const Hero = () => {
     >
       {/* Animated background */}
       <motion.div 
-        className="absolute inset-0 bg-gradient-to-br from-background via-background to-gold/5 z-0"
+        className="absolute inset-0 z-0"
         style={{ y }}
-      />
+      >
+        <motion.div
+          className="absolute inset-0 bg-gradient-to-br from-background via-background to-gold/5"
+          animate={{
+            background: [
+              "linear-gradient(to bottom right, hsl(var(--background)), hsl(var(--background)), hsl(45 80% 55% / 0.05))",
+              "linear-gradient(to bottom right, hsl(var(--background)), hsl(var(--background)), hsl(45 80% 55% / 0.08))",
+              "linear-gradient(to bottom right, hsl(var(--background)), hsl(var(--background)), hsl(45 80% 55% / 0.05))"
+            ]
+          }}
+          transition={{
+            duration: 8,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+        />
+        
+        {/* Floating orbs in background */}
+        <motion.div
+          className="absolute top-1/4 right-1/4 w-64 h-64 bg-gold/5 rounded-full blur-3xl"
+          animate={{
+            x: [0, 50, 0],
+            y: [0, -30, 0],
+            scale: [1, 1.2, 1]
+          }}
+          transition={{
+            duration: 15,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+        />
+        <motion.div
+          className="absolute bottom-1/3 left-1/4 w-80 h-80 bg-gold/3 rounded-full blur-3xl"
+          animate={{
+            x: [0, -40, 0],
+            y: [0, 40, 0],
+            scale: [1, 1.3, 1]
+          }}
+          transition={{
+            duration: 20,
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: 2
+          }}
+        />
+      </motion.div>
       
-      <div className="container mx-auto px-4 sm:px-6 md:px-8 lg:px-4 py-8 sm:py-12 md:py-16 lg:py-20 relative z-10">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-10 md:gap-12 lg:gap-16 items-center">
+      <div className="container mx-auto px-4 sm:px-6 md:px-8 lg:px-4 py-12 sm:py-16 md:py-20 lg:py-24 relative z-10">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 sm:gap-14 md:gap-16 lg:gap-20 items-center">
           <motion.div
             initial={{ opacity: 0, y: 50 }}
             animate={{ opacity: 1, y: 0 }}
@@ -37,23 +84,66 @@ export const Hero = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.4 }}
-              className="inline-block mb-3 sm:mb-4 md:mb-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-gold/10 border border-gold/30 rounded-full text-gold text-xs sm:text-sm font-semibold"
+              className="inline-flex items-center gap-2 mb-4 sm:mb-5 md:mb-6 px-4 sm:px-5 py-2 sm:py-2.5 bg-gold/10 backdrop-blur-sm border border-gold/30 rounded-full text-gold text-xs sm:text-sm font-semibold shadow-lg shadow-gold/10 hover:bg-gold/20 transition-all duration-300"
             >
+              <motion.div
+                animate={{
+                  scale: [1, 1.2, 1]
+                }}
+                transition={{
+                  duration: 2,
+                  repeat: Infinity,
+                  ease: "easeInOut"
+                }}
+              >
+                <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              </motion.div>
               Trusted by 200+ Growing Businesses
             </motion.div>
             
-            <h1 className="text-3xl xs:text-4xl sm:text-5xl md:text-6xl lg:text-6xl xl:text-7xl font-bold mb-4 sm:mb-5 md:mb-6 leading-[1.15] sm:leading-[1.12] md:leading-[1.1]">
-              Save <span className="bg-gradient-to-r from-gold to-yellow-400 bg-clip-text text-transparent">70%</span> on Operations.
+            <h1 className="text-3xl xs:text-4xl sm:text-5xl md:text-6xl lg:text-6xl xl:text-7xl font-bold mb-5 sm:mb-6 md:mb-7 leading-[1.15] sm:leading-[1.12] md:leading-[1.1] tracking-tight">
+              <motion.span
+                className="inline-block"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.5 }}
+              >
+                Save{" "}
+                <span className="relative inline-block">
+                  <span className="bg-gradient-to-r from-gold via-yellow-400 to-gold bg-clip-text text-transparent animate-gradient">
+                    70%
+                  </span>
+                  <motion.span
+                    className="absolute -bottom-1 left-0 right-0 h-1 bg-gradient-to-r from-gold to-yellow-400 rounded-full"
+                    initial={{ scaleX: 0 }}
+                    animate={{ scaleX: 1 }}
+                    transition={{ duration: 0.6, delay: 0.8 }}
+                  />
+                </span>
+                {" "}on Operations.
+              </motion.span>
               <br className="hidden xs:block" />
-              <span className="block xs:inline"><span className="bg-gradient-to-r from-gold to-yellow-400 bg-clip-text text-transparent">Scale Faster</span> with Virtual Assistants.</span>
+              <motion.span
+                className="block xs:inline"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.6 }}
+              >
+                <span className="bg-gradient-to-r from-gold via-yellow-400 to-gold bg-clip-text text-transparent animate-gradient">Scale Faster</span> with Virtual Assistants.
+              </motion.span>
               <br className="hidden xs:block" />
-              <span className="block xs:inline-block text-xl xs:text-2xl sm:text-3xl md:text-4xl lg:text-4xl xl:text-5xl font-light text-muted-foreground italic mt-2">
+              <motion.span
+                className="block xs:inline-block text-xl xs:text-2xl sm:text-3xl md:text-4xl lg:text-4xl xl:text-5xl font-light text-muted-foreground italic mt-3 sm:mt-4"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.7 }}
+              >
                 But Good.
-              </span>
+              </motion.span>
             </h1>
             
-            <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-muted-foreground mb-3 sm:mb-4 md:mb-5 leading-relaxed max-w-xl">
-              Reliable VAs. Native Quality Control. No Overhead.
+            <p className="text-base sm:text-lg md:text-xl text-muted-foreground mb-6 sm:mb-7 md:mb-8 leading-relaxed max-w-xl">
+              Reliable VAs • Native Quality Control • No Overhead
             </p>
             
             <motion.div
@@ -66,7 +156,7 @@ export const Hero = () => {
                 variant="gold" 
                 size="lg"
                 onClick={() => window.location.href = '/book-meeting'}
-                className="group relative w-full sm:w-auto text-sm sm:text-base md:text-lg px-8 sm:px-10 md:px-12 py-5 sm:py-6 md:py-7 h-auto font-bold shadow-gold-lg transform hover:scale-[1.06] hover:-translate-y-2 transition-all duration-400 hover:brightness-110 cursor-pointer overflow-hidden rounded-xl border-2 border-transparent hover:border-yellow-400/30"
+                className="group relative w-full sm:w-auto text-base sm:text-lg md:text-xl px-10 sm:px-12 md:px-14 py-6 sm:py-7 md:py-8 h-auto font-bold shadow-[0_20px_60px_-15px_hsl(45_80%_55%/0.6)] hover:shadow-[0_30px_80px_-15px_hsl(45_80%_55%/0.8)] transform hover:scale-105 hover:-translate-y-1 transition-all duration-300 cursor-pointer overflow-hidden rounded-2xl"
                 aria-label="Book a free 15-minute consultation"
               >
                 {/* Subtle shimmer effect */}
@@ -101,9 +191,10 @@ export const Hero = () => {
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.5, delay: 0.8 }}
-                className="flex items-center justify-center sm:justify-start gap-2 text-xs sm:text-sm text-muted-foreground"
+                className="flex items-center justify-center sm:justify-start gap-2.5 text-sm sm:text-base"
               >
                 <motion.div
+                  className="relative"
                   animate={{
                     scale: [1, 1.2, 1],
                     opacity: [0.5, 1, 0.5]
@@ -114,9 +205,21 @@ export const Hero = () => {
                     ease: "easeInOut"
                   }}
                 >
-                  <Sparkles className="w-3 h-3 sm:w-4 sm:h-4 text-gold" aria-hidden="true" />
+                  <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-gold" aria-hidden="true" />
+                  <motion.div
+                    className="absolute inset-0 bg-gold/30 rounded-full blur-md"
+                    animate={{
+                      scale: [1, 1.5, 1],
+                      opacity: [0.5, 0, 0.5]
+                    }}
+                    transition={{
+                      duration: 2,
+                      repeat: Infinity,
+                      ease: "easeInOut"
+                    }}
+                  />
                 </motion.div>
-                <span className="font-medium">Limited slots available this week</span>
+                <span className="font-semibold text-foreground">Limited slots available this week</span>
               </motion.div>
             </motion.div>
           </motion.div>
@@ -170,18 +273,99 @@ export const Hero = () => {
                 aria-hidden="true"
               />
               
+              {/* Image with video-like effects */}
               <motion.img 
                 src={heroImage} 
-                alt="Professional Virtual Assistant Team" 
-                className="w-full h-auto object-cover transform group-hover:scale-110 transition-transform duration-700"
-                whileHover={{ scale: 1.1 }}
+                alt="Professional Virtual Assistant Workspace" 
+                className="w-full h-auto object-cover"
+                animate={{
+                  scale: [1, 1.05, 1]
+                }}
+                transition={{
+                  duration: 20,
+                  repeat: Infinity,
+                  ease: "easeInOut"
+                }}
+              />
+              
+              {/* Animated scan line effect (like video) */}
+              <motion.div
+                className="absolute inset-0 bg-gradient-to-b from-transparent via-gold/10 to-transparent h-20"
+                animate={{
+                  y: ["-100%", "200%"]
+                }}
+                transition={{
+                  duration: 3,
+                  repeat: Infinity,
+                  ease: "linear"
+                }}
               />
               
               {/* Animated gradient overlays */}
-              <div className="absolute inset-0 bg-gradient-to-t from-background/60 via-transparent to-gold/10 mix-blend-overlay" />
+              <motion.div 
+                className="absolute inset-0 bg-gradient-to-t from-background/60 via-transparent to-gold/10 mix-blend-overlay"
+                animate={{
+                  opacity: [0.6, 0.8, 0.6]
+                }}
+                transition={{
+                  duration: 4,
+                  repeat: Infinity,
+                  ease: "easeInOut"
+                }}
+              />
+              
+              {/* Moving light rays */}
               <motion.div
-                className="absolute inset-0 bg-gradient-to-br from-gold/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700"
-                aria-hidden="true"
+                className="absolute inset-0 bg-gradient-to-br from-gold/20 via-transparent to-transparent"
+                animate={{
+                  opacity: [0.2, 0.5, 0.2],
+                  backgroundPosition: ["0% 0%", "100% 100%"]
+                }}
+                transition={{
+                  duration: 8,
+                  repeat: Infinity,
+                  ease: "easeInOut"
+                }}
+                style={{
+                  backgroundSize: "200% 200%"
+                }}
+              />
+              
+              {/* Floating particles for video effect */}
+              {[...Array(6)].map((_, i) => (
+                <motion.div
+                  key={i}
+                  className="absolute w-1 h-1 bg-gold/60 rounded-full"
+                  style={{
+                    left: `${20 + i * 15}%`,
+                    top: `${30 + (i % 3) * 20}%`
+                  }}
+                  animate={{
+                    y: [0, -40, 0],
+                    opacity: [0, 0.8, 0],
+                    scale: [0, 1.5, 0]
+                  }}
+                  transition={{
+                    duration: 3 + i * 0.5,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                    delay: i * 0.5
+                  }}
+                />
+              ))}
+              
+              {/* Pulsing glow overlay */}
+              <motion.div
+                className="absolute inset-0 bg-gradient-radial from-gold/10 via-transparent to-transparent"
+                animate={{
+                  opacity: [0.3, 0.6, 0.3],
+                  scale: [1, 1.1, 1]
+                }}
+                transition={{
+                  duration: 5,
+                  repeat: Infinity,
+                  ease: "easeInOut"
+                }}
               />
               
               {/* Floating stats overlay */}
@@ -189,7 +373,7 @@ export const Hero = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 1 }}
-                className="absolute bottom-3 left-3 right-3 sm:bottom-4 sm:left-4 sm:right-4 md:bottom-6 md:left-6 md:right-6 backdrop-blur-xl bg-card/95 border border-gold/20 rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-5 shadow-2xl group-hover:border-gold/40 transition-colors duration-500"
+                className="absolute bottom-4 left-4 right-4 sm:bottom-5 sm:left-5 sm:right-5 md:bottom-6 md:left-6 md:right-6 backdrop-blur-2xl bg-card/98 border-2 border-gold/30 rounded-xl sm:rounded-2xl p-4 sm:p-5 md:p-6 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.5)] group-hover:border-gold/60 group-hover:shadow-[0_25px_80px_-15px_hsl(45_80%_55%/0.4)] transition-all duration-500"
               >
                 <div className="grid grid-cols-3 gap-3 sm:gap-4 md:gap-6">
                   <motion.div
