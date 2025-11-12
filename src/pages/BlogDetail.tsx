@@ -3,6 +3,7 @@ import { Calendar, Clock, User, ArrowLeft, TrendingUp, TrendingDown, DollarSign,
 import { useNavigate, useParams } from "react-router-dom";
 import { Navbar } from "@/components/Navbar";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell, AreaChart, Area, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from "recharts";
+import type { ValueType, NameType } from "recharts/types/component/DefaultTooltipContent";
 
 // Chart typing for config-driven rendering
 type ChartType = "bar" | "line" | "area" | "pie" | "radar";
@@ -14,10 +15,22 @@ type ChartSeries = {
 };
 
 type DataPoint = Record<string, string | number>;
+
+type BaseChartConfig = {
+  title?: string;
+  subtitle?: string;
+};
+
+type AxisFormatters = {
+  xKey?: string;
+  yFormatter?: (value: number) => string;
+  xFormatter?: (value: string | number) => string;
+};
+
 type BlogChartConfig =
-  | { type: "pie"; data: DataPoint[]; valueKey: string; labelKey: string }
-  | { type: "radar"; data: DataPoint[]; angleKey: string; series: ChartSeries[] }
-  | { type: "bar" | "line" | "area"; data: DataPoint[]; xKey: string; series: ChartSeries[] };
+  | (BaseChartConfig & { type: "pie"; data: DataPoint[]; valueKey: string; labelKey: string; innerRadius?: number; outerRadius?: number })
+  | (BaseChartConfig & { type: "radar"; data: DataPoint[]; angleKey: string; series: ChartSeries[] })
+  | (BaseChartConfig & { type: "bar" | "line" | "area"; data: DataPoint[]; xKey: string; series: ChartSeries[] } & AxisFormatters);
 
 interface BlogPost {
   id: number;
@@ -29,7 +42,7 @@ interface BlogPost {
   readTime: string;
   category: string;
   image: string;
-  chart?: BlogChartConfig;
+  charts?: BlogChartConfig[];
 }
 
 // Chart data for different blog posts
@@ -91,6 +104,21 @@ const blog6ComparisonData = [
   { category: 'Training', fullTime: 2000, va: 0 },
   { category: 'Overhead', fullTime: 7000, va: 0 },
 ];
+
+// Derived datasets & helpers
+const formatCurrency = (n: number) => new Intl.NumberFormat(undefined, { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(n);
+const formatPercent = (n: number) => `${n.toFixed(0)}%`;
+
+const blog1TotalsPie = (() => {
+  const traditional = blog1CostData.reduce((s, d) => s + (typeof d.traditional === 'number' ? d.traditional : 0), 0);
+  const withVA = blog1CostData.reduce((s, d) => s + (typeof d.withVA === 'number' ? d.withVA : 0), 0);
+  return [
+    { name: 'Traditional', value: traditional },
+    { name: 'With VA', value: withVA },
+  ];
+})();
+
+const blog3WithMargin = blog3ScalingData.map(d => ({ ...d, margin: Math.round((d.profit / d.revenue) * 100) }));
 
 const blogPosts: BlogPost[] = [
   {
@@ -245,15 +273,30 @@ const blogPosts: BlogPost[] = [
     readTime: "12 min read",
     category: "Cost Optimization",
     image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&h=500&fit=crop",
-    chart: {
-      type: "bar",
-      data: blog1CostData,
-      xKey: "category",
-      series: [
-        { key: "traditional", label: "Traditional Employee (€)", color: "#ef4444" },
-        { key: "withVA", label: "Virtual Assistant (€)", color: "#22c55e" },
-      ],
-    },
+    charts: [
+      {
+        title: "Cost Breakdown Comparison",
+        subtitle: "Traditional Employee vs Virtual Assistant Annual Costs",
+        type: "bar",
+        data: blog1CostData,
+        xKey: "category",
+        yFormatter: formatCurrency,
+        series: [
+          { key: "traditional", label: "Traditional Employee (€)", color: "#ef4444" },
+          { key: "withVA", label: "Virtual Assistant (€)", color: "#22c55e" },
+        ],
+      },
+      {
+        title: "Total Annual Cost Split",
+        subtitle: "Overall cost comparison",
+        type: "pie",
+        data: blog1TotalsPie,
+        valueKey: "value",
+        labelKey: "name",
+        innerRadius: 70,
+        outerRadius: 120,
+      },
+    ],
   },
   {
     id: 2,
@@ -286,12 +329,28 @@ const blogPosts: BlogPost[] = [
     readTime: "4 min read",
     category: "Productivity",
     image: "https://images.unsplash.com/photo-1553877522-43269d4ea984?w=800&h=500&fit=crop",
-    chart: {
-      type: "pie",
-      data: blog2TaskData,
-      valueKey: "value",
-      labelKey: "name",
-    },
+    charts: [
+      {
+        title: "Time Distribution by Task",
+        subtitle: "How executives spend their time (hours per week)",
+        type: "pie",
+        data: blog2TaskData,
+        valueKey: "value",
+        labelKey: "name",
+        innerRadius: 60,
+        outerRadius: 120,
+      },
+      {
+        title: "Weekly Hours by Task",
+        subtitle: "Bar view of the same distribution",
+        type: "bar",
+        data: blog2TaskData,
+        xKey: "name",
+        series: [
+          { key: "hours", label: "Hours", color: "#3b82f6" },
+        ],
+      },
+    ],
   },
   {
     id: 3,
@@ -336,16 +395,32 @@ const blogPosts: BlogPost[] = [
     readTime: "7 min read",
     category: "Business Growth",
     image: "https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=800&h=500&fit=crop",
-    chart: {
-      type: "area",
-      data: blog3ScalingData,
-      xKey: "month",
-      series: [
-        { key: "revenue", label: "Revenue (€)", color: "#3b82f6" },
-        { key: "costs", label: "Costs (€)", color: "#ef4444" },
-        { key: "profit", label: "Profit (€)", color: "#22c55e" },
-      ],
-    },
+    charts: [
+      {
+        title: "Business Growth with Virtual Teams",
+        subtitle: "Revenue, costs, and profit trajectory over 6 months",
+        type: "area",
+        data: blog3ScalingData,
+        xKey: "month",
+        yFormatter: formatCurrency,
+        series: [
+          { key: "revenue", label: "Revenue (€)", color: "#3b82f6" },
+          { key: "costs", label: "Costs (€)", color: "#ef4444" },
+          { key: "profit", label: "Profit (€)", color: "#22c55e" },
+        ],
+      },
+      {
+        title: "Profit Margin",
+        subtitle: "Percentage of revenue converted to profit",
+        type: "line",
+        data: blog3WithMargin,
+        xKey: "month",
+        yFormatter: (v) => formatPercent(v),
+        series: [
+          { key: "margin", label: "Margin %", color: "#d4af37" },
+        ],
+      },
+    ],
   }
 ];
 
@@ -371,16 +446,14 @@ const BlogDetail = () => {
     );
   }
 
-  const renderChart = () => {
-    if (!post.chart) return null;
-    const c = post.chart;
+  const renderSingleChart = (c: BlogChartConfig) => {
     if (c.type === "bar") {
       return (
         <BarChart data={c.data}>
           <CartesianGrid strokeDasharray="3 3" stroke="#333" />
-          <XAxis dataKey={c.xKey} stroke="#888" angle={-15} textAnchor="end" height={80} />
-          <YAxis stroke="#888" />
-          <Tooltip contentStyle={{ backgroundColor: '#1a1a1a', border: '1px solid #d4af37', borderRadius: '8px' }} />
+          <XAxis dataKey={c.xKey} stroke="#888" angle={-15} textAnchor="end" height={80} tickFormatter={c.xFormatter} />
+          <YAxis stroke="#888" tickFormatter={c.yFormatter} />
+          <Tooltip contentStyle={{ backgroundColor: '#1a1a1a', border: '1px solid #d4af37', borderRadius: '8px' }} formatter={(value: ValueType, name: NameType) => [c.yFormatter && typeof value === 'number' ? c.yFormatter(value) : (value as string | number), String(name)]} />
           <Legend />
           {c.series.map((s) => (
             <Bar key={s.key} dataKey={s.key} fill={s.color} name={s.label} />
@@ -392,9 +465,9 @@ const BlogDetail = () => {
       return (
         <LineChart data={c.data}>
           <CartesianGrid strokeDasharray="3 3" stroke="#333" />
-          <XAxis dataKey={c.xKey} stroke="#888" />
-          <YAxis stroke="#888" />
-          <Tooltip contentStyle={{ backgroundColor: '#1a1a1a', border: '1px solid #d4af37', borderRadius: '8px' }} />
+          <XAxis dataKey={c.xKey} stroke="#888" tickFormatter={c.xFormatter} />
+          <YAxis stroke="#888" tickFormatter={c.yFormatter} />
+          <Tooltip contentStyle={{ backgroundColor: '#1a1a1a', border: '1px solid #d4af37', borderRadius: '8px' }} formatter={(value: any, name) => [c.yFormatter ? c.yFormatter(value as number) : value, name as string]} />
           <Legend />
           {c.series.map((s) => (
             <Line key={s.key} type="monotone" dataKey={s.key} stroke={s.color} strokeWidth={3} name={s.label} />
@@ -406,9 +479,9 @@ const BlogDetail = () => {
       return (
         <AreaChart data={c.data}>
           <CartesianGrid strokeDasharray="3 3" stroke="#333" />
-          <XAxis dataKey={c.xKey} stroke="#888" />
-          <YAxis stroke="#888" />
-          <Tooltip contentStyle={{ backgroundColor: '#1a1a1a', border: '1px solid #d4af37', borderRadius: '8px' }} />
+          <XAxis dataKey={c.xKey} stroke="#888" tickFormatter={c.xFormatter} />
+          <YAxis stroke="#888" tickFormatter={c.yFormatter} />
+          <Tooltip contentStyle={{ backgroundColor: '#1a1a1a', border: '1px solid #d4af37', borderRadius: '8px' }} formatter={(value: any, name) => [c.yFormatter ? c.yFormatter(value as number) : value, name as string]} />
           <Legend />
           {c.series.map((s, i) => (
             <Area key={s.key} type="monotone" dataKey={s.key} stackId={`${i+1}`} stroke={s.color} fill={s.color} fillOpacity={0.6} name={s.label} />
@@ -425,7 +498,8 @@ const BlogDetail = () => {
             cy="50%"
             labelLine={false}
             label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-            outerRadius={120}
+            innerRadius={c.innerRadius ?? 0}
+            outerRadius={c.outerRadius ?? 120}
             dataKey={c.valueKey}
             nameKey={c.labelKey}
           >
@@ -438,19 +512,21 @@ const BlogDetail = () => {
         </PieChart>
       );
     }
-    // radar
-    return (
-      <RadarChart data={c.data}>
-        <PolarGrid stroke="#444" />
-        <PolarAngleAxis dataKey={c.angleKey} stroke="#888" />
-        <PolarRadiusAxis angle={90} domain={[0, 100]} stroke="#888" />
-        {c.series.map((s) => (
-          <Radar key={s.key} name={s.label} dataKey={s.key} stroke={s.color} fill={s.color} fillOpacity={0.5} />
-        ))}
-        <Legend />
-        <Tooltip contentStyle={{ backgroundColor: '#1a1a1a', border: '1px solid #d4af37', borderRadius: '8px' }} />
-      </RadarChart>
-    );
+    if (c.type === "radar") {
+      return (
+        <RadarChart data={c.data}>
+          <PolarGrid stroke="#444" />
+          <PolarAngleAxis dataKey={c.angleKey} stroke="#888" />
+          <PolarRadiusAxis angle={90} domain={[0, 100]} stroke="#888" />
+          {c.series.map((s) => (
+            <Radar key={s.key} name={s.label} dataKey={s.key} stroke={s.color} fill={s.color} fillOpacity={0.5} />
+          ))}
+          <Legend />
+          <Tooltip contentStyle={{ backgroundColor: '#1a1a1a', border: '1px solid #d4af37', borderRadius: '8px' }} />
+        </RadarChart>
+      );
+    }
+    return null;
   };
 
   return (
@@ -548,14 +624,14 @@ const BlogDetail = () => {
             </motion.div>
 
             {/* Content */}
-            {/* Generic chart renderer based on post.chart config */}
+            {/* Generic chart renderer based on post.charts config */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.15 }}
               className="mb-12 sm:mb-16 p-8 sm:p-10 md:p-12 bg-gradient-to-br from-blue-500/10 via-purple-500/5 to-transparent border-2 border-blue-500/30 rounded-3xl"
             >
-              {post.chart && (
+              {post.charts && post.charts.length > 0 && (
                 <>
                   <h2 className="text-4xl sm:text-5xl font-bold text-blue-500 mb-4 flex items-center gap-3">
                     <BarChart3 className="w-10 h-10" />
@@ -563,10 +639,20 @@ const BlogDetail = () => {
                   </h2>
                   <p className="text-lg text-muted-foreground mb-8">Key metrics visualized for this article</p>
 
-                  <div className="bg-card/50 backdrop-blur-sm border border-blue-500/20 rounded-2xl p-6">
-                    <ResponsiveContainer width="100%" height={400}>
-                      {renderChart()}
-                    </ResponsiveContainer>
+                  <div className="space-y-8">
+                    {post.charts.map((c, idx) => (
+                      <div key={idx} className="bg-card/50 backdrop-blur-sm border border-blue-500/20 rounded-2xl p-6">
+                        {(c.title || c.subtitle) && (
+                          <div className="mb-4">
+                            {c.title && <h3 className="text-xl font-bold text-foreground">{c.title}</h3>}
+                            {c.subtitle && <p className="text-sm text-muted-foreground">{c.subtitle}</p>}
+                          </div>
+                        )}
+                        <ResponsiveContainer width="100%" height={400}>
+                          {renderSingleChart(c)}
+                        </ResponsiveContainer>
+                      </div>
+                    ))}
                   </div>
                 </>
               )}
