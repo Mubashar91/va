@@ -1,5 +1,5 @@
-import { motion } from "framer-motion";
-import { Calendar, Clock, User, ArrowLeft, TrendingUp, TrendingDown, DollarSign, Users as UsersIcon, Target, Award, BarChart3 } from "lucide-react";
+import { motion, useScroll, useSpring } from "framer-motion";
+import { Calendar, Clock, User, ArrowLeft, BarChart3, Share2, Twitter, Linkedin, Link as LinkIcon } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Navbar } from "@/components/Navbar";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell, AreaChart, Area, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from "recharts";
@@ -429,6 +429,13 @@ const BlogDetail = () => {
   const { id } = useParams();
   
   const post = blogPosts.find(p => p.id === Number(id));
+  const currentIndex = blogPosts.findIndex(p => p.id === Number(id));
+  const prevPost = currentIndex > 0 ? blogPosts[currentIndex - 1] : undefined;
+  const nextPost = currentIndex >= 0 && currentIndex < blogPosts.length - 1 ? blogPosts[currentIndex + 1] : undefined;
+
+  // Reading progress bar
+  const { scrollYProgress } = useScroll();
+  const progress = useSpring(scrollYProgress, { stiffness: 120, damping: 20, restDelta: 0.001 });
 
   if (!post) {
     return (
@@ -467,7 +474,7 @@ const BlogDetail = () => {
           <CartesianGrid strokeDasharray="3 3" stroke="#333" />
           <XAxis dataKey={c.xKey} stroke="#888" tickFormatter={c.xFormatter} />
           <YAxis stroke="#888" tickFormatter={c.yFormatter} />
-          <Tooltip contentStyle={{ backgroundColor: '#1a1a1a', border: '1px solid #d4af37', borderRadius: '8px' }} formatter={(value: any, name) => [c.yFormatter ? c.yFormatter(value as number) : value, name as string]} />
+          <Tooltip contentStyle={{ backgroundColor: '#1a1a1a', border: '1px solid #d4af37', borderRadius: '8px' }} formatter={(value: ValueType, name: NameType) => [c.yFormatter && typeof value === 'number' ? c.yFormatter(value) : (value as string | number), String(name)]} />
           <Legend />
           {c.series.map((s) => (
             <Line key={s.key} type="monotone" dataKey={s.key} stroke={s.color} strokeWidth={3} name={s.label} />
@@ -481,7 +488,7 @@ const BlogDetail = () => {
           <CartesianGrid strokeDasharray="3 3" stroke="#333" />
           <XAxis dataKey={c.xKey} stroke="#888" tickFormatter={c.xFormatter} />
           <YAxis stroke="#888" tickFormatter={c.yFormatter} />
-          <Tooltip contentStyle={{ backgroundColor: '#1a1a1a', border: '1px solid #d4af37', borderRadius: '8px' }} formatter={(value: any, name) => [c.yFormatter ? c.yFormatter(value as number) : value, name as string]} />
+          <Tooltip contentStyle={{ backgroundColor: '#1a1a1a', border: '1px solid #d4af37', borderRadius: '8px' }} formatter={(value: ValueType, name: NameType) => [c.yFormatter && typeof value === 'number' ? c.yFormatter(value) : (value as string | number), String(name)]} />
           <Legend />
           {c.series.map((s, i) => (
             <Area key={s.key} type="monotone" dataKey={s.key} stackId={`${i+1}`} stroke={s.color} fill={s.color} fillOpacity={0.6} name={s.label} />
@@ -531,6 +538,11 @@ const BlogDetail = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Reading progress bar */}
+      <motion.div
+        className="fixed left-0 right-0 top-0 h-1 bg-gold origin-[0%_50%] z-40"
+        style={{ scaleX: progress }}
+      />
       <Navbar />
       
       <motion.section
@@ -623,38 +635,70 @@ const BlogDetail = () => {
               </div>
             </motion.div>
 
+            {/* Share actions */}
+            <div className="mt-6 flex flex-wrap items-center gap-3">
+              <button
+                onClick={() => {
+                  const url = window.location.href;
+                  const text = encodeURIComponent(post.title);
+                  const shareUrl = `https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${text}`;
+                  window.open(shareUrl, "_blank", "noopener,noreferrer");
+                }}
+                className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-border/60 hover:border-gold/60 text-foreground hover:text-gold transition"
+              >
+                <Twitter className="w-4 h-4" /> Share on X
+              </button>
+              <button
+                onClick={() => {
+                  const url = window.location.href;
+                  const title = encodeURIComponent(post.title);
+                  const shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}&title=${title}`;
+                  window.open(shareUrl, "_blank", "noopener,noreferrer");
+                }}
+                className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-border/60 hover:border-gold/60 text-foreground hover:text-gold transition"
+              >
+                <Linkedin className="w-4 h-4" /> Share on LinkedIn
+              </button>
+              <button
+                onClick={async () => {
+                  try {
+                    await navigator.clipboard.writeText(window.location.href);
+                  } catch {
+                    void 0;
+                  }
+                }}
+                className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-border/60 hover:border-gold/60 text-foreground hover:text-gold transition"
+                aria-label="Copy link"
+              >
+                <LinkIcon className="w-4 h-4" /> Copy link
+              </button>
+            </div>
+
             {/* Content */}
-            {/* Generic chart renderer based on post.charts config */}
+            {/* Plain chart blocks: chart then a paragraph */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.15 }}
-              className="mb-12 sm:mb-16 p-8 sm:p-10 md:p-12 bg-gradient-to-br from-blue-500/10 via-purple-500/5 to-transparent border-2 border-blue-500/30 rounded-3xl"
+              className="mb-12 sm:mb-16"
             >
               {post.charts && post.charts.length > 0 && (
-                <>
-                  <h2 className="text-4xl sm:text-5xl font-bold text-blue-500 mb-4 flex items-center gap-3">
-                    <BarChart3 className="w-10 h-10" />
-                    Data Insights
-                  </h2>
-                  <p className="text-lg text-muted-foreground mb-8">Key metrics visualized for this article</p>
-
-                  <div className="space-y-8">
-                    {post.charts.map((c, idx) => (
-                      <div key={idx} className="bg-card/50 backdrop-blur-sm border border-blue-500/20 rounded-2xl p-6">
-                        {(c.title || c.subtitle) && (
-                          <div className="mb-4">
-                            {c.title && <h3 className="text-xl font-bold text-foreground">{c.title}</h3>}
-                            {c.subtitle && <p className="text-sm text-muted-foreground">{c.subtitle}</p>}
-                          </div>
-                        )}
-                        <ResponsiveContainer width="100%" height={400}>
+                <div className="space-y-10">
+                  {post.charts.map((c, idx) => (
+                    <div key={idx}>
+                      <div className="w-full" style={{ height: 400 }}>
+                        <ResponsiveContainer width="100%" height="100%">
                           {renderSingleChart(c)}
                         </ResponsiveContainer>
                       </div>
-                    ))}
-                  </div>
-                </>
+                      {(c.subtitle || c.title) && (
+                        <p className="mt-4 text-base sm:text-lg text-muted-foreground">
+                          {c.subtitle ?? c.title}
+                        </p>
+                      )}
+                    </div>
+                  ))}
+                </div>
               )}
             </motion.div>
 
@@ -673,7 +717,6 @@ const BlogDetail = () => {
                 prose-ul:my-12 prose-ul:space-y-6
                 prose-ol:my-12 prose-ol:space-y-6
                 prose-li:text-foreground/85 prose-li:text-2xl sm:prose-li:text-3xl lg:prose-li:text-4xl prose-li:leading-relaxed prose-li:pl-2
-                prose-a:text-amber-500 prose-a:no-underline hover:prose-a:underline hover:prose-a:text-yellow-500
                 [&_ul]:list-none [&_ul]:pl-0
                 [&_ul>li]:relative [&_ul>li]:pl-8 [&_ul>li]:before:content-['▸'] [&_ul>li]:before:absolute [&_ul>li]:before:left-0 [&_ul>li]:before:text-amber-500 [&_ul>li]:before:font-bold [&_ul>li]:before:text-xl
                 [&_ol]:list-none [&_ol]:pl-0 [&_ol]:counter-reset-[item]
@@ -683,6 +726,28 @@ const BlogDetail = () => {
             >
               <div dangerouslySetInnerHTML={{ __html: post.content }} />
             </motion.div>
+
+            {/* Prev / Next navigation */}
+            {(prevPost || nextPost) && (
+              <div className="mt-4 sm:mt-6 mb-6 sm:mb-8 flex flex-col sm:flex-row gap-3 sm:gap-4">
+                {prevPost && (
+                  <button
+                    onClick={() => navigate(`/blog/${prevPost.id}`)}
+                    className="flex-1 text-left px-4 py-3 rounded-lg border border-border/60 hover:border-gold/60 transition"
+                  >
+                    ← {prevPost.title}
+                  </button>
+                )}
+                {nextPost && (
+                  <button
+                    onClick={() => navigate(`/blog/${nextPost.id}`)}
+                    className="flex-1 text-right px-4 py-3 rounded-lg border border-border/60 hover:border-gold/60 transition"
+                  >
+                    {nextPost.title} →
+                  </button>
+                )}
+              </div>
+            )}
 
             {/* CTA at bottom */}
             <motion.div
