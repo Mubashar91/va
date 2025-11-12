@@ -2,7 +2,22 @@ import { motion } from "framer-motion";
 import { Calendar, Clock, User, ArrowLeft, TrendingUp, TrendingDown, DollarSign, Users as UsersIcon, Target, Award, BarChart3 } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Navbar } from "@/components/Navbar";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell, AreaChart, Area, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from "recharts";
+
+// Chart typing for config-driven rendering
+type ChartType = "bar" | "line" | "area" | "pie" | "radar";
+
+type ChartSeries = {
+  key: string;
+  label: string;
+  color: string;
+};
+
+type DataPoint = Record<string, string | number>;
+type BlogChartConfig =
+  | { type: "pie"; data: DataPoint[]; valueKey: string; labelKey: string }
+  | { type: "radar"; data: DataPoint[]; angleKey: string; series: ChartSeries[] }
+  | { type: "bar" | "line" | "area"; data: DataPoint[]; xKey: string; series: ChartSeries[] };
 
 interface BlogPost {
   id: number;
@@ -14,24 +29,67 @@ interface BlogPost {
   readTime: string;
   category: string;
   image: string;
+  chart?: BlogChartConfig;
 }
 
-// Chart data for blog statistics
-const blogStatsData = [
-  { month: 'Jan', views: 1200, engagement: 450, leads: 85 },
-  { month: 'Feb', views: 1800, engagement: 680, leads: 120 },
-  { month: 'Mar', views: 2400, engagement: 920, leads: 180 },
-  { month: 'Apr', views: 3200, engagement: 1250, leads: 245 },
-  { month: 'May', views: 4100, engagement: 1680, leads: 320 },
-  { month: 'Jun', views: 5300, engagement: 2150, leads: 425 },
+// Chart data for different blog posts
+const COLORS = ['#d4af37', '#3b82f6', '#8b5cf6', '#22c55e', '#ef4444', '#f59e0b'];
+
+// Blog 1: Cost Savings - Bar Chart
+const blog1CostData = [
+  { category: 'Office Space', traditional: 9600, withVA: 0 },
+  { category: 'Benefits', traditional: 10000, withVA: 0 },
+  { category: 'Equipment', traditional: 3000, withVA: 0 },
+  { category: 'Salary', traditional: 40000, withVA: 14549 },
+  { category: 'Training', traditional: 2000, withVA: 0 },
 ];
 
-const costSavingsData = [
-  { category: 'Office Space', traditional: 9600, withVA: 0, savings: 9600 },
-  { category: 'Benefits', traditional: 10000, withVA: 0, savings: 10000 },
-  { category: 'Equipment', traditional: 3000, withVA: 0, savings: 3000 },
-  { category: 'Salary', traditional: 40000, withVA: 14549, savings: 25451 },
-  { category: 'Training', traditional: 2000, withVA: 0, savings: 2000 },
+// Blog 2: Task Delegation - Pie Chart
+const blog2TaskData = [
+  { name: 'Email Management', value: 25, hours: 10 },
+  { name: 'Calendar Management', value: 15, hours: 6 },
+  { name: 'Social Media', value: 20, hours: 8 },
+  { name: 'Data Entry', value: 20, hours: 8 },
+  { name: 'Customer Support', value: 20, hours: 8 },
+];
+
+// Blog 3: Scaling Business - Area Chart
+const blog3ScalingData = [
+  { month: 'Month 1', revenue: 50000, costs: 35000, profit: 15000 },
+  { month: 'Month 2', revenue: 65000, costs: 38000, profit: 27000 },
+  { month: 'Month 3', revenue: 85000, costs: 40000, profit: 45000 },
+  { month: 'Month 4', revenue: 110000, costs: 42000, profit: 68000 },
+  { month: 'Month 5', revenue: 140000, costs: 45000, profit: 95000 },
+  { month: 'Month 6', revenue: 175000, costs: 48000, profit: 127000 },
+];
+
+// Blog 4: Remote Work - Line Chart
+const blog4RemoteData = [
+  { quarter: 'Q1 2023', productivity: 75, satisfaction: 70, retention: 80 },
+  { quarter: 'Q2 2023', productivity: 82, satisfaction: 78, retention: 85 },
+  { quarter: 'Q3 2023', productivity: 88, satisfaction: 85, retention: 90 },
+  { quarter: 'Q4 2023', productivity: 92, satisfaction: 90, retention: 93 },
+  { quarter: 'Q1 2024', productivity: 95, satisfaction: 93, retention: 95 },
+];
+
+// Blog 5: Onboarding - Radar Chart
+const blog5OnboardingData = [
+  { metric: 'Communication', week1: 60, week4: 95 },
+  { metric: 'Task Completion', week1: 50, week4: 90 },
+  { metric: 'Quality', week1: 55, week4: 92 },
+  { metric: 'Independence', week1: 40, week4: 88 },
+  { metric: 'Speed', week1: 45, week4: 85 },
+  { metric: 'Initiative', week1: 35, week4: 80 },
+];
+
+// Blog 6: Cost Comparison - Bar Chart
+const blog6ComparisonData = [
+  { category: 'Base Salary', fullTime: 40000, va: 18000 },
+  { category: 'Benefits', fullTime: 8000, va: 0 },
+  { category: 'Office Costs', fullTime: 4000, va: 0 },
+  { category: 'Equipment', fullTime: 2000, va: 0 },
+  { category: 'Training', fullTime: 2000, va: 0 },
+  { category: 'Overhead', fullTime: 7000, va: 0 },
 ];
 
 const blogPosts: BlogPost[] = [
@@ -186,7 +244,16 @@ const blogPosts: BlogPost[] = [
     date: "March 15, 2024",
     readTime: "12 min read",
     category: "Cost Optimization",
-    image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&h=500&fit=crop"
+    image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&h=500&fit=crop",
+    chart: {
+      type: "bar",
+      data: blog1CostData,
+      xKey: "category",
+      series: [
+        { key: "traditional", label: "Traditional Employee (€)", color: "#ef4444" },
+        { key: "withVA", label: "Virtual Assistant (€)", color: "#22c55e" },
+      ],
+    },
   },
   {
     id: 2,
@@ -218,7 +285,13 @@ const blogPosts: BlogPost[] = [
     date: "March 10, 2024",
     readTime: "4 min read",
     category: "Productivity",
-    image: "https://images.unsplash.com/photo-1553877522-43269d4ea984?w=800&h=500&fit=crop"
+    image: "https://images.unsplash.com/photo-1553877522-43269d4ea984?w=800&h=500&fit=crop",
+    chart: {
+      type: "pie",
+      data: blog2TaskData,
+      valueKey: "value",
+      labelKey: "name",
+    },
   },
   {
     id: 3,
@@ -262,7 +335,17 @@ const blogPosts: BlogPost[] = [
     date: "March 5, 2024",
     readTime: "7 min read",
     category: "Business Growth",
-    image: "https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=800&h=500&fit=crop"
+    image: "https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=800&h=500&fit=crop",
+    chart: {
+      type: "area",
+      data: blog3ScalingData,
+      xKey: "month",
+      series: [
+        { key: "revenue", label: "Revenue (€)", color: "#3b82f6" },
+        { key: "costs", label: "Costs (€)", color: "#ef4444" },
+        { key: "profit", label: "Profit (€)", color: "#22c55e" },
+      ],
+    },
   }
 ];
 
@@ -287,6 +370,88 @@ const BlogDetail = () => {
       </div>
     );
   }
+
+  const renderChart = () => {
+    if (!post.chart) return null;
+    const c = post.chart;
+    if (c.type === "bar") {
+      return (
+        <BarChart data={c.data}>
+          <CartesianGrid strokeDasharray="3 3" stroke="#333" />
+          <XAxis dataKey={c.xKey} stroke="#888" angle={-15} textAnchor="end" height={80} />
+          <YAxis stroke="#888" />
+          <Tooltip contentStyle={{ backgroundColor: '#1a1a1a', border: '1px solid #d4af37', borderRadius: '8px' }} />
+          <Legend />
+          {c.series.map((s) => (
+            <Bar key={s.key} dataKey={s.key} fill={s.color} name={s.label} />
+          ))}
+        </BarChart>
+      );
+    }
+    if (c.type === "line") {
+      return (
+        <LineChart data={c.data}>
+          <CartesianGrid strokeDasharray="3 3" stroke="#333" />
+          <XAxis dataKey={c.xKey} stroke="#888" />
+          <YAxis stroke="#888" />
+          <Tooltip contentStyle={{ backgroundColor: '#1a1a1a', border: '1px solid #d4af37', borderRadius: '8px' }} />
+          <Legend />
+          {c.series.map((s) => (
+            <Line key={s.key} type="monotone" dataKey={s.key} stroke={s.color} strokeWidth={3} name={s.label} />
+          ))}
+        </LineChart>
+      );
+    }
+    if (c.type === "area") {
+      return (
+        <AreaChart data={c.data}>
+          <CartesianGrid strokeDasharray="3 3" stroke="#333" />
+          <XAxis dataKey={c.xKey} stroke="#888" />
+          <YAxis stroke="#888" />
+          <Tooltip contentStyle={{ backgroundColor: '#1a1a1a', border: '1px solid #d4af37', borderRadius: '8px' }} />
+          <Legend />
+          {c.series.map((s, i) => (
+            <Area key={s.key} type="monotone" dataKey={s.key} stackId={`${i+1}`} stroke={s.color} fill={s.color} fillOpacity={0.6} name={s.label} />
+          ))}
+        </AreaChart>
+      );
+    }
+    if (c.type === "pie") {
+      return (
+        <PieChart>
+          <Pie
+            data={c.data}
+            cx="50%"
+            cy="50%"
+            labelLine={false}
+            label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+            outerRadius={120}
+            dataKey={c.valueKey}
+            nameKey={c.labelKey}
+          >
+            {c.data.map((_, index) => (
+              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+            ))}
+          </Pie>
+          <Tooltip contentStyle={{ backgroundColor: '#1a1a1a', border: '1px solid #d4af37', borderRadius: '8px' }} />
+          <Legend />
+        </PieChart>
+      );
+    }
+    // radar
+    return (
+      <RadarChart data={c.data}>
+        <PolarGrid stroke="#444" />
+        <PolarAngleAxis dataKey={c.angleKey} stroke="#888" />
+        <PolarRadiusAxis angle={90} domain={[0, 100]} stroke="#888" />
+        {c.series.map((s) => (
+          <Radar key={s.key} name={s.label} dataKey={s.key} stroke={s.color} fill={s.color} fillOpacity={0.5} />
+        ))}
+        <Legend />
+        <Tooltip contentStyle={{ backgroundColor: '#1a1a1a', border: '1px solid #d4af37', borderRadius: '8px' }} />
+      </RadarChart>
+    );
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -383,207 +548,28 @@ const BlogDetail = () => {
             </motion.div>
 
             {/* Content */}
-            {/* Blog Performance Chart */}
+            {/* Generic chart renderer based on post.chart config */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.15 }}
               className="mb-12 sm:mb-16 p-8 sm:p-10 md:p-12 bg-gradient-to-br from-blue-500/10 via-purple-500/5 to-transparent border-2 border-blue-500/30 rounded-3xl"
             >
-              <h2 className="text-4xl sm:text-5xl font-bold text-blue-500 mb-4 flex items-center gap-3">
-                <BarChart3 className="w-10 h-10" />
-                Blog Performance Metrics
-              </h2>
-              <p className="text-lg text-muted-foreground mb-8">Monthly blog engagement and lead generation statistics</p>
-              
-              <div className="bg-card/50 backdrop-blur-sm border border-blue-500/20 rounded-2xl p-6">
-                <ResponsiveContainer width="100%" height={400}>
-                  <LineChart data={blogStatsData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#333" />
-                    <XAxis dataKey="month" stroke="#888" />
-                    <YAxis stroke="#888" />
-                    <Tooltip 
-                      contentStyle={{ 
-                        backgroundColor: '#1a1a1a', 
-                        border: '1px solid #d4af37',
-                        borderRadius: '8px'
-                      }}
-                    />
-                    <Legend />
-                    <Line type="monotone" dataKey="views" stroke="#3b82f6" strokeWidth={3} name="Views" />
-                    <Line type="monotone" dataKey="engagement" stroke="#8b5cf6" strokeWidth={3} name="Engagement" />
-                    <Line type="monotone" dataKey="leads" stroke="#d4af37" strokeWidth={3} name="Leads Generated" />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-            </motion.div>
+              {post.chart && (
+                <>
+                  <h2 className="text-4xl sm:text-5xl font-bold text-blue-500 mb-4 flex items-center gap-3">
+                    <BarChart3 className="w-10 h-10" />
+                    Data Insights
+                  </h2>
+                  <p className="text-lg text-muted-foreground mb-8">Key metrics visualized for this article</p>
 
-            {/* Key Stats Section */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              className="mb-12 sm:mb-16 p-8 sm:p-10 md:p-12 bg-gradient-to-br from-amber-500/10 via-yellow-500/5 to-transparent border-2 border-amber-500/30 rounded-3xl"
-            >
-              <h2 className="text-4xl sm:text-5xl font-bold text-amber-500 mb-8 flex items-center gap-3">
-                <TrendingUp className="w-10 h-10" />
-                Key Statistics
-              </h2>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-                {/* Stat 1 */}
-                <motion.div
-                  className="relative p-6 sm:p-8 bg-card/80 backdrop-blur-sm border-2 border-amber-500/20 rounded-2xl hover:border-amber-500/50 transition-all duration-300 group overflow-hidden"
-                  whileHover={{ scale: 1.05, y: -5 }}
-                >
-                  <motion.div
-                    className="absolute inset-0 bg-gradient-to-br from-amber-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                  />
-                  <div className="relative z-10">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-500/20 to-yellow-500/20 flex items-center justify-center border border-amber-500/30">
-                        <DollarSign className="w-8 h-8 text-amber-500" />
-                      </div>
-                      <TrendingDown className="w-6 h-6 text-green-500" />
-                    </div>
-                    <div className="text-5xl sm:text-6xl font-bold text-amber-500 mb-2">70%</div>
-                    <div className="text-xl sm:text-2xl text-foreground font-semibold mb-2">Cost Reduction</div>
-                    <div className="text-base sm:text-lg text-muted-foreground">Average savings on operational costs</div>
+                  <div className="bg-card/50 backdrop-blur-sm border border-blue-500/20 rounded-2xl p-6">
+                    <ResponsiveContainer width="100%" height={400}>
+                      {renderChart()}
+                    </ResponsiveContainer>
                   </div>
-                </motion.div>
-
-                {/* Stat 2 */}
-                <motion.div
-                  className="relative p-6 sm:p-8 bg-card/80 backdrop-blur-sm border-2 border-amber-500/20 rounded-2xl hover:border-amber-500/50 transition-all duration-300 group overflow-hidden"
-                  whileHover={{ scale: 1.05, y: -5 }}
-                >
-                  <motion.div
-                    className="absolute inset-0 bg-gradient-to-br from-amber-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                  />
-                  <div className="relative z-10">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-500/20 to-yellow-500/20 flex items-center justify-center border border-amber-500/30">
-                        <UsersIcon className="w-8 h-8 text-amber-500" />
-                      </div>
-                      <TrendingUp className="w-6 h-6 text-green-500" />
-                    </div>
-                    <div className="text-5xl sm:text-6xl font-bold text-amber-500 mb-2">200+</div>
-                    <div className="text-xl sm:text-2xl text-foreground font-semibold mb-2">Happy Clients</div>
-                    <div className="text-base sm:text-lg text-muted-foreground">Businesses transformed</div>
-                  </div>
-                </motion.div>
-
-                {/* Stat 3 */}
-                <motion.div
-                  className="relative p-6 sm:p-8 bg-card/80 backdrop-blur-sm border-2 border-amber-500/20 rounded-2xl hover:border-amber-500/50 transition-all duration-300 group overflow-hidden"
-                  whileHover={{ scale: 1.05, y: -5 }}
-                >
-                  <motion.div
-                    className="absolute inset-0 bg-gradient-to-br from-amber-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                  />
-                  <div className="relative z-10">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-500/20 to-yellow-500/20 flex items-center justify-center border border-amber-500/30">
-                        <Target className="w-8 h-8 text-amber-500" />
-                      </div>
-                      <TrendingUp className="w-6 h-6 text-green-500" />
-                    </div>
-                    <div className="text-5xl sm:text-6xl font-bold text-amber-500 mb-2">312%</div>
-                    <div className="text-xl sm:text-2xl text-foreground font-semibold mb-2">Average ROI</div>
-                    <div className="text-base sm:text-lg text-muted-foreground">Return on investment in year 1</div>
-                  </div>
-                </motion.div>
-              </div>
-
-              {/* Cost Breakdown Chart */}
-              <div className="mt-10 sm:mt-12 p-6 sm:p-8 bg-card/50 backdrop-blur-sm border border-amber-500/20 rounded-2xl">
-                <h3 className="text-3xl sm:text-4xl font-bold text-yellow-500 mb-6">Detailed Cost Breakdown</h3>
-                <div className="bg-card/30 rounded-xl p-4 mb-8">
-                  <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={costSavingsData}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#333" />
-                      <XAxis dataKey="category" stroke="#888" angle={-15} textAnchor="end" height={80} />
-                      <YAxis stroke="#888" />
-                      <Tooltip 
-                        contentStyle={{ 
-                          backgroundColor: '#1a1a1a', 
-                          border: '1px solid #d4af37',
-                          borderRadius: '8px'
-                        }}
-                      />
-                      <Legend />
-                      <Bar dataKey="traditional" fill="#ef4444" name="Traditional Employee" />
-                      <Bar dataKey="withVA" fill="#22c55e" name="With Virtual Assistant" />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
-
-              {/* Visual Graph */}
-              <div className="mt-10 sm:mt-12 p-6 sm:p-8 bg-card/50 backdrop-blur-sm border border-amber-500/20 rounded-2xl">
-                <h3 className="text-3xl sm:text-4xl font-bold text-yellow-500 mb-6">Cost Comparison</h3>
-                <div className="space-y-6">
-                  {/* Traditional Employee Bar */}
-                  <div>
-                    <div className="flex items-center justify-between mb-3">
-                      <span className="text-xl sm:text-2xl font-semibold text-foreground">Traditional Employee</span>
-                      <span className="text-2xl sm:text-3xl font-bold text-red-500">€64,000/year</span>
-                    </div>
-                    <div className="relative h-16 bg-card/50 rounded-xl overflow-hidden border border-border/50">
-                      <motion.div
-                        className="absolute inset-y-0 left-0 bg-gradient-to-r from-red-500 to-red-600 flex items-center justify-end pr-4"
-                        initial={{ width: 0 }}
-                        whileInView={{ width: "100%" }}
-                        viewport={{ once: true }}
-                        transition={{ duration: 1.5, delay: 0.3 }}
-                      >
-                        <span className="text-xl font-bold text-white">100%</span>
-                      </motion.div>
-                    </div>
-                  </div>
-
-                  {/* Virtual Assistant Bar */}
-                  <div>
-                    <div className="flex items-center justify-between mb-3">
-                      <span className="text-xl sm:text-2xl font-semibold text-foreground">Virtual Assistant</span>
-                      <span className="text-2xl sm:text-3xl font-bold text-green-500">€14,549/year</span>
-                    </div>
-                    <div className="relative h-16 bg-card/50 rounded-xl overflow-hidden border border-border/50">
-                      <motion.div
-                        className="absolute inset-y-0 left-0 bg-gradient-to-r from-green-500 to-emerald-600 flex items-center justify-end pr-4"
-                        initial={{ width: 0 }}
-                        whileInView={{ width: "23%" }}
-                        viewport={{ once: true }}
-                        transition={{ duration: 1.5, delay: 0.5 }}
-                      >
-                        <span className="text-xl font-bold text-white">23%</span>
-                      </motion.div>
-                    </div>
-                  </div>
-
-                  {/* Savings Highlight */}
-                  <motion.div
-                    className="mt-6 p-6 bg-gradient-to-r from-amber-500/20 to-green-500/20 border-2 border-amber-500/30 rounded-2xl"
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    whileInView={{ opacity: 1, scale: 1 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.6, delay: 0.8 }}
-                  >
-                    <div className="flex items-center justify-between flex-wrap gap-4">
-                      <div className="flex items-center gap-4">
-                        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-500 to-yellow-500 flex items-center justify-center">
-                          <Award className="w-10 h-10 text-white" />
-                        </div>
-                        <div>
-                          <div className="text-2xl sm:text-3xl font-bold text-foreground">You Save</div>
-                          <div className="text-lg sm:text-xl text-muted-foreground">Annual Savings</div>
-                        </div>
-                      </div>
-                      <div className="text-4xl sm:text-5xl font-bold text-amber-500">€49,451</div>
-                    </div>
-                  </motion.div>
-                </div>
-              </div>
+                </>
+              )}
             </motion.div>
 
             {/* Blog Content */}

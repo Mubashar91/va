@@ -140,7 +140,7 @@ export const Hero = () => {
               >
                 But Good.
               </motion.span>
-            </h1>
+ 0           </h1>
             
             <p className="text-base sm:text-lg md:text-xl text-muted-foreground mb-6 sm:mb-7 md:mb-8 leading-relaxed max-w-xl">
               Reliable VAs • Native Quality Control • No Overhead
