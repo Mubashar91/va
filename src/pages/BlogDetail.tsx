@@ -454,87 +454,99 @@ const BlogDetail = () => {
   }
 
   const renderSingleChart = (c: BlogChartConfig) => {
-    if (c.type === "bar") {
+    if (c.type === 'bar') {
       return (
-        <BarChart data={c.data}>
+        <BarChart data={c.data} margin={{ top: 10, right: 16, left: 0, bottom: 0 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#333" />
-          <XAxis dataKey={c.xKey} stroke="#888" angle={-15} textAnchor="end" height={80} tickFormatter={c.xFormatter} />
-          <YAxis stroke="#888" tickFormatter={c.yFormatter} />
-          <Tooltip contentStyle={{ backgroundColor: '#1a1a1a', border: '1px solid #d4af37', borderRadius: '8px' }} formatter={(value: ValueType, name: NameType) => [c.yFormatter && typeof value === 'number' ? c.yFormatter(value) : (value as string | number), String(name)]} />
-          <Legend />
-          {c.series.map((s) => (
-            <Bar key={s.key} dataKey={s.key} fill={s.color} name={s.label} />
+          <XAxis dataKey={c.xKey} stroke="#9CA3AF" tick={{ fill: '#D1D5DB', fontSize: 12 }} />
+          <YAxis stroke="#9CA3AF" tick={{ fill: '#D1D5DB', fontSize: 12 }} tickFormatter={v => (c.yFormatter ? c.yFormatter(Number(v)) : String(v))} />
+          <Tooltip
+            contentStyle={{ backgroundColor: '#0b0b0b', border: '1px solid #d4af37', borderRadius: '10px', color: '#fff', padding: '10px 12px' }}
+            labelStyle={{ color: '#fff', fontSize: 14, fontWeight: 600 }}
+            itemStyle={{ color: '#fff', fontSize: 14 }}
+          />
+          <Legend wrapperStyle={{ color: '#E5E7EB', fontSize: 13 }} />
+          {c.series.map(s => (
+            <Bar key={s.key} dataKey={s.key} name={s.label} fill={s.color} radius={[6, 6, 0, 0]} />
           ))}
         </BarChart>
       );
     }
-    if (c.type === "line") {
+    if (c.type === 'line') {
       return (
-        <LineChart data={c.data}>
+        <LineChart data={c.data} margin={{ top: 10, right: 16, left: 0, bottom: 0 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#333" />
-          <XAxis dataKey={c.xKey} stroke="#888" tickFormatter={c.xFormatter} />
-          <YAxis stroke="#888" tickFormatter={c.yFormatter} />
-          <Tooltip contentStyle={{ backgroundColor: '#1a1a1a', border: '1px solid #d4af37', borderRadius: '8px' }} formatter={(value: ValueType, name: NameType) => [c.yFormatter && typeof value === 'number' ? c.yFormatter(value) : (value as string | number), String(name)]} />
-          <Legend />
-          {c.series.map((s) => (
-            <Line key={s.key} type="monotone" dataKey={s.key} stroke={s.color} strokeWidth={3} name={s.label} />
+          <XAxis dataKey={c.xKey} stroke="#9CA3AF" tick={{ fill: '#D1D5DB', fontSize: 12 }} />
+          <YAxis stroke="#9CA3AF" tick={{ fill: '#D1D5DB', fontSize: 12 }} tickFormatter={v => (c.yFormatter ? c.yFormatter(Number(v)) : String(v))} />
+          <Tooltip
+            contentStyle={{ backgroundColor: '#0b0b0b', border: '1px solid #d4af37', borderRadius: '10px', color: '#fff', padding: '10px 12px' }}
+            labelStyle={{ color: '#fff', fontSize: 14, fontWeight: 600 }}
+            itemStyle={{ color: '#fff', fontSize: 14 }}
+          />
+          <Legend wrapperStyle={{ color: '#E5E7EB', fontSize: 13 }} />
+          {c.series.map(s => (
+            <Line key={s.key} type="monotone" dataKey={s.key} name={s.label} stroke={s.color} strokeWidth={3} dot={false} />
           ))}
         </LineChart>
       );
     }
-    if (c.type === "area") {
+    if (c.type === 'area') {
       return (
-        <AreaChart data={c.data}>
+        <AreaChart data={c.data} margin={{ top: 10, right: 16, left: 0, bottom: 0 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#333" />
-          <XAxis dataKey={c.xKey} stroke="#888" tickFormatter={c.xFormatter} />
-          <YAxis stroke="#888" tickFormatter={c.yFormatter} />
-          <Tooltip contentStyle={{ backgroundColor: '#1a1a1a', border: '1px solid #d4af37', borderRadius: '8px' }} formatter={(value: ValueType, name: NameType) => [c.yFormatter && typeof value === 'number' ? c.yFormatter(value) : (value as string | number), String(name)]} />
-          <Legend />
-          {c.series.map((s, i) => (
-            <Area key={s.key} type="monotone" dataKey={s.key} stackId={`${i+1}`} stroke={s.color} fill={s.color} fillOpacity={0.6} name={s.label} />
+          <XAxis dataKey={c.xKey} stroke="#9CA3AF" tick={{ fill: '#D1D5DB', fontSize: 12 }} />
+          <YAxis stroke="#9CA3AF" tick={{ fill: '#D1D5DB', fontSize: 12 }} tickFormatter={v => (c.yFormatter ? c.yFormatter(Number(v)) : String(v))} />
+          <Tooltip
+            contentStyle={{ backgroundColor: '#0b0b0b', border: '1px solid #d4af37', borderRadius: '10px', color: '#fff', padding: '10px 12px' }}
+            labelStyle={{ color: '#fff', fontSize: 14, fontWeight: 600 }}
+            itemStyle={{ color: '#fff', fontSize: 14 }}
+          />
+          <Legend wrapperStyle={{ color: '#E5E7EB', fontSize: 13 }} />
+          {c.series.map(s => (
+            <Area key={s.key} type="monotone" dataKey={s.key} name={s.label} stroke={s.color} fill={s.color} fillOpacity={0.25} strokeWidth={2} />
           ))}
         </AreaChart>
       );
     }
-    if (c.type === "pie") {
+    if (c.type === 'pie') {
       return (
         <PieChart>
-          <Pie
-            data={c.data}
-            cx="50%"
-            cy="50%"
-            labelLine={false}
-            label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-            innerRadius={c.innerRadius ?? 0}
-            outerRadius={c.outerRadius ?? 120}
-            dataKey={c.valueKey}
-            nameKey={c.labelKey}
-          >
-            {c.data.map((_, index) => (
-              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+          <Pie data={c.data} dataKey={(c as any).valueKey} nameKey={(c as any).labelKey} innerRadius={(c as any).innerRadius ?? 60} outerRadius={(c as any).outerRadius ?? 110}>
+            {(c.data as DataPoint[]).map((_, i) => (
+              <Cell key={`cell-${i}`} fill={COLORS[i % COLORS.length]} />
             ))}
           </Pie>
-          <Tooltip contentStyle={{ backgroundColor: '#1a1a1a', border: '1px solid #d4af37', borderRadius: '8px' }} />
-          <Legend />
+          <Tooltip
+            contentStyle={{ backgroundColor: '#0b0b0b', border: '1px solid #d4af37', borderRadius: '10px', color: '#fff', padding: '10px 12px' }}
+            labelStyle={{ color: '#fff', fontSize: 14, fontWeight: 600 }}
+            itemStyle={{ color: '#fff', fontSize: 14 }}
+          />
+          <Legend wrapperStyle={{ color: '#E5E7EB', fontSize: 13 }} />
         </PieChart>
       );
     }
-    if (c.type === "radar") {
+    if (c.type === 'radar') {
       return (
-        <RadarChart data={c.data}>
+        <RadarChart data={(c as any).data}>
           <PolarGrid stroke="#444" />
-          <PolarAngleAxis dataKey={c.angleKey} stroke="#888" />
-          <PolarRadiusAxis angle={90} domain={[0, 100]} stroke="#888" />
-          {c.series.map((s) => (
+          <PolarAngleAxis dataKey={(c as any).angleKey} stroke="#9CA3AF" tick={{ fill: '#D1D5DB', fontSize: 12 }} />
+          <PolarRadiusAxis angle={90} domain={[0, 100]} stroke="#9CA3AF" tick={{ fill: '#D1D5DB', fontSize: 12 }} />
+          {(c as any).series.map((s: ChartSeries) => (
             <Radar key={s.key} name={s.label} dataKey={s.key} stroke={s.color} fill={s.color} fillOpacity={0.5} />
           ))}
-          <Legend />
-          <Tooltip contentStyle={{ backgroundColor: '#1a1a1a', border: '1px solid #d4af37', borderRadius: '8px' }} />
+          <Legend wrapperStyle={{ color: '#E5E7EB', fontSize: 13 }} />
+          <Tooltip
+            contentStyle={{ backgroundColor: '#0b0b0b', border: '1px solid #d4af37', borderRadius: '10px', color: '#fff', padding: '10px 12px' }}
+            labelStyle={{ color: '#fff', fontSize: 14, fontWeight: 600 }}
+            itemStyle={{ color: '#fff', fontSize: 14 }}
+          />
         </RadarChart>
       );
     }
     return null;
   };
+
+ 
 
   return (
     <div className="min-h-screen bg-background">
@@ -583,6 +595,27 @@ const BlogDetail = () => {
                 alt={post.title}
                 className="w-full h-56 sm:h-72 md:h-96 lg:h-[500px] object-cover group-hover:scale-110 transition-transform duration-700"
               />
+            </motion.div>
+
+            {/* Author box */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.25 }}
+              className="mb-10 sm:mb-12 p-5 sm:p-6 border border-border/60 rounded-xl sm:rounded-2xl bg-card/50 backdrop-blur"
+            >
+              <div className="flex items-center gap-4 sm:gap-5">
+                <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-br from-amber-500/30 to-yellow-500/20 border border-gold/40 flex items-center justify-center text-foreground font-bold">
+                  {post.author.split(' ').map(n => n[0]).slice(0,2).join('')}
+                </div>
+                <div className="flex-1">
+                  <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                    <h4 className="text-lg sm:text-xl font-bold text-foreground">{post.author}</h4>
+                    <span className="text-xs sm:text-sm text-muted-foreground">• {post.date} • {post.readTime}</span>
+                  </div>
+                  <p className="mt-1 text-sm sm:text-base text-muted-foreground">Insights curated by our team to help you scale with virtual assistants.</p>
+                </div>
+              </div>
             </motion.div>
 
             {/* Meta info */}

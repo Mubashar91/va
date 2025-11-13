@@ -3,11 +3,14 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/components/ThemeProvider";
 import { Menu, X, Sun, Moon } from "lucide-react";
+import { useLocation, useNavigate } from "react-router-dom";
 
 export const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const { theme, setTheme } = useTheme();
+  const location = useLocation();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -50,6 +53,25 @@ export const Navbar = () => {
     { name: "FAQ", href: "#faq" },
   ];
 
+  const handleNavClick = async (hash: string) => {
+    const id = hash.replace('#', '');
+    const goScroll = () => {
+      const el = document.getElementById(id);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    };
+
+    if (location.pathname !== '/') {
+      navigate('/');
+      // Wait a tick for DOM to render on home, then scroll
+      setTimeout(goScroll, 350);
+    } else {
+      goScroll();
+    }
+    setIsOpen(false);
+  };
+
   return (
     <motion.nav
       initial={{ y: -100 }}
@@ -79,9 +101,10 @@ export const Navbar = () => {
           {/* Desktop Navigation - Show on medium screens and up */}
           <div className="hidden md:flex items-center space-x-2 md:space-x-3 lg:space-x-6 xl:space-x-8">
             {navItems.map((item, index) => (
-              <motion.a
+              <motion.button
+                type="button"
                 key={item.name}
-                href={item.href}
+                onClick={() => handleNavClick(item.href)}
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.3 + index * 0.1 }}
@@ -89,7 +112,7 @@ export const Navbar = () => {
               >
                 {item.name}
                 <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-0.5 bg-gold group-hover:w-3/4 transition-all duration-300" />
-              </motion.a>
+              </motion.button>
             ))}
           </div>
 
@@ -115,12 +138,26 @@ export const Navbar = () => {
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6, delay: 0.45 }}
+            >
+              <Button
+                variant="gold-outline"
+                size="sm"
+                onClick={() => navigate('/contact')}
+                className="text-sm md:text-sm lg:text-base px-4 md:px-4 lg:px-6 py-2 md:py-2 lg:py-2 cursor-pointer hover:shadow-gold transition-all duration-300 hover:scale-105 font-semibold whitespace-nowrap"
+              >
+                Contact
+              </Button>
+            </motion.div>
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6, delay: 0.5 }}
             >
               <Button
                 variant="gold"
                 size="sm"
-                onClick={() => window.location.href = '/book-meeting'}
+                onClick={() => navigate('/book-meeting')}
                 className="text-sm md:text-sm lg:text-base px-4 md:px-4 lg:px-7 py-2 md:py-2 lg:py-2.5 cursor-pointer hover:shadow-lg hover:shadow-gold/30 transition-all duration-300 hover:scale-105 font-semibold whitespace-nowrap"
               >
                 Get Started
@@ -180,17 +217,17 @@ export const Navbar = () => {
             >
               <div className="py-3 space-y-1">
                 {navItems.map((item, index) => (
-                  <motion.a
+                  <motion.button
+                    type="button"
                     key={item.name}
-                    href={item.href}
+                    onClick={() => handleNavClick(item.href)}
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ duration: 0.2, delay: index * 0.05 }}
-                    className="block text-foreground hover:text-gold hover:bg-gold/10 active:bg-gold/20 transition-all duration-200 font-medium py-3 px-4 rounded-lg mx-2"
-                    onClick={() => setIsOpen(false)}
+                    className="block w-full text-left text-foreground hover:text-gold hover:bg-gold/10 active:bg-gold/20 transition-all duration-200 font-medium py-3 px-4 rounded-lg mx-2"
                   >
                     {item.name}
-                  </motion.a>
+                  </motion.button>
                 ))}
                 <motion.div
                   initial={{ opacity: 0, x: -20 }}
@@ -198,13 +235,28 @@ export const Navbar = () => {
                   transition={{ duration: 0.2, delay: navItems.length * 0.05 }}
                   className="pt-3 px-3 border-t border-border/50"
                 >
-                  <Button
-                    variant="gold"
-                    onClick={() => window.location.href = '/book-meeting'}
-                    className="w-full text-base py-3 cursor-pointer font-semibold hover:shadow-lg transition-all duration-300"
-                  >
-                    Get Started
-                  </Button>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button
+                      variant="gold-outline"
+                      onClick={() => {
+                        navigate('/contact');
+                        setIsOpen(false);
+                      }}
+                      className="w-full text-base py-3 cursor-pointer font-semibold hover:shadow-gold transition-all duration-300"
+                    >
+                      Contact
+                    </Button>
+                    <Button
+                      variant="gold"
+                      onClick={() => {
+                        navigate('/book-meeting');
+                        setIsOpen(false);
+                      }}
+                      className="w-full text-base py-3 cursor-pointer font-semibold hover:shadow-lg transition-all duration-300"
+                    >
+                      Get Started
+                    </Button>
+                  </div>
                 </motion.div>
               </div>
             </motion.div>
